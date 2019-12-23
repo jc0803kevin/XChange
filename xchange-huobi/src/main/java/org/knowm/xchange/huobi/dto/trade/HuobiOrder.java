@@ -109,7 +109,10 @@ public class HuobiOrder {
   }
 
   public boolean isLimit() {
-    return getType().equals("buy-limit") || getType().equals("sell-limit");
+    return getType().equals("buy-limit")
+        || getType().equals("sell-limit")
+        || getType().equals("buy-ioc")
+        || getType().equals("sell-ioc");
   }
 
   public boolean isMarket() {

@@ -2,8 +2,11 @@ package org.knowm.xchange.huobi.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import org.knowm.xchange.Exchange;
+import org.knowm.xchange.dto.Order.IOrderFlags;
 import org.knowm.xchange.dto.Order.OrderType;
 import org.knowm.xchange.dto.trade.LimitOrder;
 import org.knowm.xchange.dto.trade.MarketOrder;
@@ -11,6 +14,7 @@ import org.knowm.xchange.exceptions.ExchangeException;
 import org.knowm.xchange.huobi.HuobiUtils;
 import org.knowm.xchange.huobi.dto.trade.HuobiCreateOrderRequest;
 import org.knowm.xchange.huobi.dto.trade.HuobiOrder;
+import org.knowm.xchange.huobi.dto.trade.TimeInForce;
 import org.knowm.xchange.huobi.dto.trade.results.HuobiCancelOrderResult;
 import org.knowm.xchange.huobi.dto.trade.results.HuobiOrderInfoResult;
 import org.knowm.xchange.huobi.dto.trade.results.HuobiOrderResult;
@@ -71,6 +75,23 @@ class HuobiTradeServiceRaw extends HuobiBaseService {
       throw new ExchangeException("Unsupported order type.");
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    {
+      Set<IOrderFlags> orderFlags = limitOrder.getOrderFlags();
+      Iterator<IOrderFlags> orderFlagsIterator = orderFlags.iterator();
+
+      while (orderFlagsIterator.hasNext()) {
+        IOrderFlags orderFlag = orderFlagsIterator.next();
+        if (orderFlag instanceof TimeInForce) {
+          if (limitOrder.getType() == OrderType.BID) {
+            type = "buy-ioc";
+          } else if (limitOrder.getType() == OrderType.ASK) {
+            type = "sell-ioc";
+          }
+        }
+      }
+    }
+    ////////////////////////////////////////////////////////////////////////////////
     HuobiOrderResult result =
         huobi.placeLimitOrder(
             new HuobiCreateOrderRequest(
