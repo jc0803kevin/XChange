@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>xchange-huobi</artifactId>
+    <version>4.4.1-dealerx</version>
 
     <name>XChange Huobi</name>
     <description>XChange implementation for the Huobi Exchange</description>
@@ -27,7 +28,7 @@
         <dependency>
             <groupId>org.knowm.xchange</groupId>
             <artifactId>xchange-core</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
 
     </dependencies>
