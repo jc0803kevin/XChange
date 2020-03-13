@@ -20,6 +20,8 @@ import org.knowm.xchange.huobi.dto.trade.results.HuobiOrderInfoResult;
 import org.knowm.xchange.huobi.dto.trade.results.HuobiOrderResult;
 import org.knowm.xchange.huobi.dto.trade.results.HuobiOrdersResult;
 import org.knowm.xchange.service.trade.params.TradeHistoryParams;
+import org.knowm.xchange.service.trade.params.TradeHistoryParamsAll;
+import org.knowm.xchange.utils.Assert;
 
 class HuobiTradeServiceRaw extends HuobiBaseService {
 
@@ -28,10 +30,20 @@ class HuobiTradeServiceRaw extends HuobiBaseService {
   }
 
   HuobiOrder[] getHuobiTradeHistory(TradeHistoryParams tradeHistoryParams) throws IOException {
+    Assert.isTrue(
+        tradeHistoryParams instanceof TradeHistoryParamsAll,
+        "You need to provide the currency pair to get the user trades.");
+
+    TradeHistoryParamsAll params = (TradeHistoryParamsAll) tradeHistoryParams;
     String tradeStates = "partial-filled,partial-canceled,filled";
+    String symbol = params.getCurrencyPair().toString().replaceAll("/", "").toLowerCase();
+    ;
     HuobiOrdersResult result =
         huobi.getOpenOrders(
+            symbol,
             tradeStates,
+            params.getStartTime().getTime(),
+            params.getEndTime().getTime(),
             exchange.getExchangeSpecification().getApiKey(),
             HuobiDigest.HMAC_SHA_256,
             2,
@@ -44,7 +56,10 @@ class HuobiTradeServiceRaw extends HuobiBaseService {
     String states = "pre-submitted,submitted,partial-filled";
     HuobiOrdersResult result =
         huobi.getOpenOrders(
+            null,
             states,
+            null,
+            null,
             exchange.getExchangeSpecification().getApiKey(),
             HuobiDigest.HMAC_SHA_256,
             2,

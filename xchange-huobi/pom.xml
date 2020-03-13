@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>xchange-huobi</artifactId>
-    <version>4.4.1-dealerx</version>
+    <version>4.4.2-dealerx</version>
 
     <name>XChange Huobi</name>
     <description>XChange implementation for the Huobi Exchange</description>

@@ -205,23 +205,32 @@ public class HuobiAdapters {
    * @param order
    * @return
    */
-  private static UserTrade adaptTrade(LimitOrder order) {
-    BigDecimal feeAmount =
-        order
-            .getCumulativeAmount()
-            .multiply(order.getLimitPrice())
-            .multiply(fee)
-            .setScale(8, RoundingMode.DOWN);
+  private static UserTrade adaptTrade(HuobiOrder order) {
+    CurrencyPair pair = adaptCurrencyPair(order.getSymbol());
+    OrderType type = adaptOrderType(order.getType());
+    Currency feeCurrency;
+    switch (type) {
+      case BID:
+      case EXIT_BID:
+        feeCurrency = pair.base;
+        break;
+      case ASK:
+      case EXIT_ASK:
+        feeCurrency = pair.counter;
+        break;
+      default:
+        feeCurrency = null;
+    }
+
     return new UserTrade.Builder()
-        .type(order.getType())
-        .originalAmount(order.getCumulativeAmount())
-        .currencyPair(order.getCurrencyPair())
-        .price(order.getLimitPrice())
-        .timestamp(order.getTimestamp())
-        .id("") // Trade id
-        .orderId(order.getId()) // Original order id
-        .feeAmount(feeAmount)
-        .feeCurrency(order.getCurrencyPair().counter)
+        .currencyPair(pair)
+        .type(type)
+        .price(order.getPrice())
+        .originalAmount(order.getAmount())
+        .feeCurrency(feeCurrency)
+        .feeAmount(order.getFieldFees())
+        .timestamp(order.getFinishedAt())
+        .orderId(String.valueOf(order.getId()))
         .build();
   }
 
@@ -271,10 +280,9 @@ public class HuobiAdapters {
     return orders;
   }
 
-  public static UserTrades adaptTradeHistory(HuobiOrder[] openOrders) {
-    OpenOrders orders = adaptOpenOrders(openOrders);
+  public static UserTrades adaptTradeHistory(HuobiOrder[] orders) {
     List<UserTrade> trades = new ArrayList<>();
-    for (LimitOrder order : orders.getOpenOrders()) {
+    for (HuobiOrder order : orders) {
       trades.add(adaptTrade(order));
     }
     return new UserTrades(trades, TradeSortType.SortByTimestamp);

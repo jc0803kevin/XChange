@@ -22,7 +22,7 @@ public class HuobiTradeService extends HuobiTradeServiceRaw implements TradeServ
   /** Huobi currently doesn't have trade history API. We simulate it by using the orders history. */
   @Override
   public UserTrades getTradeHistory(TradeHistoryParams tradeHistoryParams) throws IOException {
-    HuobiOrder[] openOrders = getHuobiTradeHistory(null);
+    HuobiOrder[] openOrders = getHuobiTradeHistory(tradeHistoryParams);
     return HuobiAdapters.adaptTradeHistory(openOrders);
   }
 

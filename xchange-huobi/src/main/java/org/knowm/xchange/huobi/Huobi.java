@@ -139,7 +139,10 @@ public interface Huobi {
   @GET
   @Path("v1/order/orders")
   HuobiOrdersResult getOpenOrders(
+      @QueryParam("symbol") String symbol,
       @QueryParam("states") String states,
+      @QueryParam("start-time") Long startTime,
+      @QueryParam("end-time") Long endTime,
       @QueryParam("AccessKeyId") String apiKey,
       @QueryParam("SignatureMethod") String signatureMethod,
       @QueryParam("SignatureVersion") int signatureVersion,
