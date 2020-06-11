@@ -36,11 +36,10 @@ class HuobiTradeServiceRaw extends HuobiBaseService {
 
     TradeHistoryParamsAll params = (TradeHistoryParamsAll) tradeHistoryParams;
     String tradeStates = "partial-filled,partial-canceled,filled";
-    String symbol = params.getCurrencyPair().toString().replaceAll("/", "").toLowerCase();
-    ;
+
     HuobiOrdersResult result =
-        huobi.getOpenOrders(
-            symbol,
+        huobi.getOrderHistory(
+            HuobiUtils.createHuobiCurrencyPair(params.getCurrencyPair()),
             tradeStates,
             params.getStartTime().getTime(),
             params.getEndTime().getTime(),
@@ -52,14 +51,11 @@ class HuobiTradeServiceRaw extends HuobiBaseService {
     return checkResult(result);
   }
 
-  HuobiOrder[] getHuobiOpenOrders() throws IOException {
-    String states = "pre-submitted,submitted,partial-filled";
+  HuobiOrder[] getHuobiOpenOrders(String symbol) throws IOException {
     HuobiOrdersResult result =
         huobi.getOpenOrders(
-            null,
-            states,
-            null,
-            null,
+            getAccountId(),
+            symbol,
             exchange.getExchangeSpecification().getApiKey(),
             HuobiDigest.HMAC_SHA_256,
             2,

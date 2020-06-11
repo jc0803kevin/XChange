@@ -184,7 +184,8 @@ public class HuobiAdapters {
               String.valueOf(openOrder.getId()),
               openOrder.getCreatedAt(),
               openOrder.getPrice());
-      if (openOrder.getFieldAmount().compareTo(BigDecimal.ZERO) == 0) {
+      if (openOrder.getFieldAmount() == null
+          || openOrder.getFieldAmount().compareTo(BigDecimal.ZERO) == 0) {
         order.setAveragePrice(BigDecimal.ZERO);
       } else {
         order.setAveragePrice(
@@ -206,31 +207,31 @@ public class HuobiAdapters {
    * @return
    */
   private static UserTrade adaptTrade(HuobiOrder order) {
-    CurrencyPair pair = adaptCurrencyPair(order.getSymbol());
-    OrderType type = adaptOrderType(order.getType());
-    Currency feeCurrency;
-    switch (type) {
+    OrderType orderType = adaptOrderType(order.getType());
+    CurrencyPair currencyPair = adaptCurrencyPair(order.getSymbol());
+    Currency feeCurrency = null;
+    switch (orderType) {
       case BID:
       case EXIT_BID:
-        feeCurrency = pair.base;
+        feeCurrency = currencyPair.base;
         break;
       case ASK:
       case EXIT_ASK:
-        feeCurrency = pair.counter;
+        feeCurrency = currencyPair.counter;
         break;
       default:
-        feeCurrency = null;
+        return null;
     }
-
     return new UserTrade.Builder()
-        .currencyPair(pair)
-        .type(type)
+        .type(orderType)
+        .originalAmount(order.getFieldAmount())
+        .currencyPair(currencyPair)
         .price(order.getPrice())
-        .originalAmount(order.getAmount())
-        .feeCurrency(feeCurrency)
+        .timestamp(order.getCreatedAt())
+        .id("") // Trade id
+        .orderId(String.valueOf(order.getId())) // Original order id
         .feeAmount(order.getFieldFees())
-        .timestamp(order.getFinishedAt())
-        .orderId(String.valueOf(order.getId()))
+        .feeCurrency(feeCurrency)
         .build();
   }
 
@@ -280,9 +281,9 @@ public class HuobiAdapters {
     return orders;
   }
 
-  public static UserTrades adaptTradeHistory(HuobiOrder[] orders) {
+  public static UserTrades adaptTradeHistory(HuobiOrder[] huobiOrders) {
     List<UserTrade> trades = new ArrayList<>();
-    for (HuobiOrder order : orders) {
+    for (HuobiOrder order : huobiOrders) {
       trades.add(adaptTrade(order));
     }
     return new UserTrades(trades, TradeSortType.SortByTimestamp);

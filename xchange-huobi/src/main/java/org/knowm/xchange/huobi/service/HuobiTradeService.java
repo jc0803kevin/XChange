@@ -6,11 +6,13 @@ import org.knowm.xchange.Exchange;
 import org.knowm.xchange.dto.Order;
 import org.knowm.xchange.dto.trade.*;
 import org.knowm.xchange.huobi.HuobiAdapters;
+import org.knowm.xchange.huobi.HuobiUtils;
 import org.knowm.xchange.huobi.dto.trade.HuobiOrder;
 import org.knowm.xchange.service.trade.TradeService;
 import org.knowm.xchange.service.trade.params.CancelOrderByIdParams;
 import org.knowm.xchange.service.trade.params.CancelOrderParams;
 import org.knowm.xchange.service.trade.params.TradeHistoryParams;
+import org.knowm.xchange.service.trade.params.orders.DefaultOpenOrdersParamCurrencyPair;
 import org.knowm.xchange.service.trade.params.orders.OpenOrdersParams;
 
 public class HuobiTradeService extends HuobiTradeServiceRaw implements TradeService {
@@ -22,8 +24,8 @@ public class HuobiTradeService extends HuobiTradeServiceRaw implements TradeServ
   /** Huobi currently doesn't have trade history API. We simulate it by using the orders history. */
   @Override
   public UserTrades getTradeHistory(TradeHistoryParams tradeHistoryParams) throws IOException {
-    HuobiOrder[] openOrders = getHuobiTradeHistory(tradeHistoryParams);
-    return HuobiAdapters.adaptTradeHistory(openOrders);
+    HuobiOrder[] orders = getHuobiTradeHistory(tradeHistoryParams);
+    return HuobiAdapters.adaptTradeHistory(orders);
   }
 
   @Override
@@ -58,13 +60,12 @@ public class HuobiTradeService extends HuobiTradeServiceRaw implements TradeServ
   }
 
   @Override
-  public OpenOrders getOpenOrders() throws IOException {
-    return getOpenOrders(createOpenOrdersParams());
-  }
-
-  @Override
   public OpenOrders getOpenOrders(OpenOrdersParams openOrdersParams) throws IOException {
-    HuobiOrder[] openOrders = getHuobiOpenOrders();
+    DefaultOpenOrdersParamCurrencyPair params =
+        (DefaultOpenOrdersParamCurrencyPair) openOrdersParams;
+
+    HuobiOrder[] openOrders =
+        getHuobiOpenOrders(HuobiUtils.createHuobiCurrencyPair(params.getCurrencyPair()));
     return HuobiAdapters.adaptOpenOrders(openOrders);
   }
 
